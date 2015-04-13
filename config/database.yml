@@ -1,0 +1,18 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+development:
+  <<: *default
+  database: hapli_development
+
+test:
+  <<: *default
+  database: hapli_test
+
+production:
+  <<: *default
+  database: hapli_production
+  username: hapli
+  password: <%= ENV['HAPLI_DATABASE_PASSWORD'] %>
