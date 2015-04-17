@@ -70,7 +70,6 @@ def crawl(url)
     links = get_links(page)
 
     # index_page(url, page, links) # unless already indexed
-    # figure out what the &%^* do to with this ^^
 
     links.each do |link|
       unless link["href"] == nil || link["href"].empty? || link["href"].include?("?") || link["href"].include?("javascript:void") || link["href"].include?("mailto:") || link["href"].scan(/%/).size > 3 || link["href"].include?("news:")
