@@ -1,31 +1,3 @@
-/* container-whole takes up entire page
-
-/*.container-whole {
-  height: 100%;
-  width: 100%;
-  background-color: black;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 100;
-}*/
-
-/* inner div sits perfectly centered on page
-
-/*.inner {
-  transform: translateY(-50%);
-  width: 80%;
-  height: 85%;
-  margin: 0 auto;
-  position: relative;
-  top: 52%;
-  background-color: yellow;
-}*/
-
-/*Lets start with the cloud formation rather*/
-
-/*The container will also serve as the SKY*/
-
 @import url(http://fonts.googleapis.com/css?family=Comfortaa:400,300,700);
 
 *{ margin: 0; padding: 0;}
@@ -43,7 +15,8 @@ body {
   background: -moz-linear-gradient(top, #c9dbe9 0%, #fff 100%);
 }
 
-/*Time to finalise the cloud shape*/
+/*cloud shape*/
+
 .cloud {
   width: 200px; height: 60px;
   background: #fff;
@@ -76,7 +49,8 @@ body {
   top: -55px; left: auto; right: 15px;
 }
 
-/*Time to animate*/
+/*animation*/
+
 .x1 {
   -webkit-animation: moveclouds 40s linear infinite;
   -moz-animation: moveclouds 40s linear infinite;
@@ -84,6 +58,7 @@ body {
 }
 
 /*variable speed, opacity, and position of clouds for realistic effect*/
+
 .x2 {
   left: 200px;
 
@@ -180,10 +155,11 @@ body {
 }
 
 .grass {
-  height: 50px;
-  background-color: #339933;
   position: absolute;
+  width: 100%;
   bottom: 0;
   left: 0;
-  width: 100%;
+  background-image: url(grass.png);
+  background-size: contain;
+  height: 100px;
 }

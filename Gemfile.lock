@@ -43,8 +43,6 @@ GEM
     bloomfilter-rb (2.1.1)
       redis
     builder (3.2.2)
-    byebug (4.0.4)
-      columnize (= 0.9.0)
     coderay (1.1.0)
     coffee-rails (4.1.0)
       coffee-script (>= 2.2.0)
@@ -53,19 +51,30 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.9.1)
-    columnize (0.9.0)
     debug_inspector (0.0.2)
-    domain_name (0.5.23)
-      unf (>= 0.0.5, < 1.0.0)
     domainatrix (0.0.11)
       addressable
+    elasticsearch (1.0.8)
+      elasticsearch-api (= 1.0.7)
+      elasticsearch-transport (= 1.0.7)
+    elasticsearch-api (1.0.7)
+      multi_json
+    elasticsearch-model (0.1.7)
+      activesupport (> 3)
+      elasticsearch (> 0.4)
+      hashie
+    elasticsearch-rails (0.1.7)
+    elasticsearch-transport (1.0.7)
+      faraday
+      multi_json
     erubis (2.7.0)
     execjs (2.4.0)
+    faraday (0.9.1)
+      multipart-post (>= 1.2, < 3)
     globalid (0.3.3)
       activesupport (>= 4.1.0)
+    hashie (3.4.1)
     hike (1.2.3)
-    http-cookie (1.0.2)
-      domain_name (~> 0.5)
     i18n (0.7.0)
     jbuilder (2.2.12)
       activesupport (>= 3.0.0, < 5)
@@ -84,7 +93,8 @@ GEM
     mini_portile (0.6.2)
     minitest (5.5.1)
     multi_json (1.11.0)
-    netrc (0.10.3)
+    multipart-post (2.0.0)
+    netrc (0.7.9)
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
     pg (0.18.1)
@@ -123,10 +133,8 @@ GEM
     rdoc (4.2.0)
       json (~> 1.4)
     redis (3.2.1)
-    rest-client (1.8.0)
-      http-cookie (>= 1.0.2, < 2.0)
-      mime-types (>= 1.16, < 3.0)
-      netrc (~> 0.7)
+    rest_client (1.8.3)
+      netrc (~> 0.7.7)
     sass (3.4.13)
     sass-rails (5.0.3)
       railties (>= 4.0.0, < 5.0)
@@ -158,9 +166,6 @@ GEM
     uglifier (2.7.1)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
-    unf (0.1.4)
-      unf_ext
-    unf_ext (0.0.6)
     web-console (2.1.2)
       activemodel (>= 4.0)
       binding_of_caller (>= 0.7.2)
@@ -172,16 +177,17 @@ PLATFORMS
 
 DEPENDENCIES
   bloomfilter-rb
-  byebug
   coffee-rails (~> 4.1.0)
   domainatrix
+  elasticsearch-model
+  elasticsearch-rails
   jbuilder (~> 2.0)
   jquery-rails
   nokogiri
   pg
   pry
   rails (= 4.2.1)
-  rest-client
+  rest_client
   sass-rails (~> 5.0)
   sdoc (~> 0.4.0)
   spring
