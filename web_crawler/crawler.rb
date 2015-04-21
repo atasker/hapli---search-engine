@@ -11,33 +11,33 @@ require 'pry'
 @frontier_next_limit = 0
 @visited_next_limit = 0
 @frontier = Set.new
-@frontier << "http://www.dmoz.org"
+@frontier << "http://www.dmoz.org/Kids_and_Teens/"
 @visited = Set.new
 
 # adding previously collected urls to frontier set
 CSV.foreach("frontier.csv") do |row|
-  @frontier.add?(row)
+  @frontier.add?(row[0])
   @frontier_next_limit += 1
 end
 
 # adding previously visited urls to visited set
 CSV.foreach("visited.csv") do |row|
-  @visited.add?(row)
+  @visited.add?(row[0])
   @visited_next_limit += 1
 end
 
 # this method interacts with elasticsearch and indexes pages
 def index_page(url, page, links)
-  Net::HTTP.start("localhost", 9200) do |http|
-    encoded_url = CGI.escape(url)
-    request = Net::HTTP::Put.new("/my_crawl/page/#{encoded_url}")
-    request.body = {
-      "text" => page.text,
-      "links" => links
-    }.to_json
+    Net::HTTP.start("localhost", 9200) do |http|
+      encoded_url = CGI::escape(url).force_encoding('UTF-8')
+      request = Net::HTTP::Put.new("/hapli_search/page/#{encoded_url}")
+      request.body = {
+        "text" => page.text,
+        "links" => links
+      }.to_json
 
-    request.content_type = "application/json"
-    http.request(request)
+      request.content_type = "application/json"
+      http.request(request)
   end
 end
 
@@ -65,33 +65,32 @@ def check_size
 end
 
 def crawl(url)
-  if url.class != Array # to ignore inadvertently passing in arrays
-    page = nokogiri(url)
-    links = get_links(page)
-
-    # index_page(url, page, links) # unless already indexed
-
-    links.each do |link|
-      unless link["href"] == nil || link["href"].empty? || link["href"].include?("?") || link["href"].include?("javascript:void") || link["href"].include?("mailto:") || link["href"].scan(/%/).size > 3 || link["href"].include?("news:")
-        sanitized = sanitize(url, link["href"])
-        @frontier << sanitized
-        delete_empty(@frontier)
+  if already_visited(url)
+    crawl(find_next)
+  else
+    if url.class != Array # to ignore inadvertently passing in arrays
+      page = nokogiri(url)
+      links = get_links(page)
+      link_array = []
+      links.each do |link|
+        unless link["href"] == nil || link["href"].empty? || link["href"].include?("?") || link["href"].include?("javascript:void") || link["href"].include?("mailto:") || link["href"].scan(/%/).size > 3 || link["href"].include?("news:") || link["href"].include?("|||")
+          sanitized = sanitize(url, link["href"])
+          @frontier << sanitized
+          link_array << sanitized
+          delete_empty(@frontier)
+        end
       end
+      visited_in(url)
+      system('clear')
+      puts
+      puts
+      puts "-------------URLS to be crawled #{@frontier.size}-------------"
+      puts "-------------URLS already crawled #{@visited.size}-------------"
+      check_size
     end
-    visited_in(url)
-    system('clear')
-    puts
-    puts
-    puts "-------------URLS to be crawled #{@frontier.size}-------------"
-    puts "-------------URLS already crawled #{@visited.size}-------------"
-    puts "-------------Selection from frontier:-------------"
-    puts "#{@frontier.to_a.sample}"
-    puts "#{@frontier.to_a.sample}"
-    puts "#{@frontier.to_a.sample}"
-    puts "#{@frontier.to_a.sample}"
-    check_size
+    index_page(url, page, link_array) # unless already indexed
+    crawl(find_next) # if not already in bloom
   end
-  crawl(find_next) # if not already in bloom
 end
 
 def get_links(page)
@@ -114,7 +113,7 @@ def already_visited(url)
 end
 
 def visited_in(url)
-  # insert canonicalized url into bloom filter
+  # insert canonicalized url into visited set
   canon = canonicalize(url)
 
   if !canon.nil?
@@ -123,21 +122,18 @@ def visited_in(url)
 end
 
 def nokogiri(url)
-  Nokogiri::HTML(RestClient.get(url){ |response, request, result, &block|
-  case response.code
-  when 404
-    puts "404 not found error"
-    response
-  when 408
-    puts "408 timeout"
-    response
-  when 403
-    puts "403 forbidden"
-    response
-  else
-    response.return!(request, result, &block)
+  begin
+    Nokogiri::HTML(RestClient.get(url){ |response, request, result, &block|
+    error_codes = [404, 408, 403]
+      if error_codes.include?(response.code)
+        puts "error"
+      else
+        response.return!(request, result, &block)
+      end
+    })
+    rescue URI::InvalidURIError => err
+      puts err
   end
-  })
 end
 
 def delete_empty(array)
