@@ -1,6 +1,6 @@
 # hapli
 
-#### A full text search engine intended to allow parents and teachers to feel fully confident about the safety of their childs online experience.
+#### A full text search engine intended to allow parents and teachers full confidence about the safety of their childs online experience.
 
 > Built with `ruby on rails`, and `elasticsearch`
 
