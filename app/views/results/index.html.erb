@@ -1,0 +1,7 @@
+<h3>results</h3>
+
+<p>About <%= @hits %> results (<%= @time %> seconds)</p>
+
+<% @parsed["hits"]["hits"].each do |result| %>
+  <%= result["_id"] %><br />
+<% end %>

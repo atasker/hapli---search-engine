@@ -1,5 +1,7 @@
 class Crawler < ActiveRecord::Base
 
+include ActionView::Helpers::SanitizeHelper
+
 require 'rest_client'
 require 'cgi'
 require 'net/http'
@@ -33,11 +35,12 @@ end
 
 # this method interacts with elasticsearch and indexes pages
 def index_page(url, page, links)
+    # stripped = strip_tags(page.text) # further sanitize
     Net::HTTP.start("localhost", 9200) do |http|
       encoded_url = CGI::escape(url).force_encoding('UTF-8')
       request = Net::HTTP::Put.new("/hapli_search/page/#{encoded_url}")
       request.body = {
-        "text" => page.text,
+        "text" => page.text, #force encoding
         "links" => links
       }.to_json
 

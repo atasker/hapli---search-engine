@@ -8,7 +8,15 @@
   <div class="header-container">
     <div class="header">hapli</div>
   </div>
-  <div class="search"><input type="text" class="input" autofocus></div>
+
+  <div class="search">
+
+  <%= form_tag(controller: "results", action: "index", method: "post") do %>
+    <%= text_field_tag :q, nil, class: 'input' %>
+    <%= submit_tag("Search") %>
+  <% end %>
+
+  </div>
 
   <div class="grass">
   </div>
