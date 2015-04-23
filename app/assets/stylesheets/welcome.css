@@ -131,6 +131,7 @@ body {
   width: 60%;
   max-width: 550px;
   margin: 0 auto;
+  text-align: center;
 }
 
 .input {
@@ -167,7 +168,5 @@ body {
 .search-button {
   font-family: 'Comfortaa', cursive;
   font-size: 0.9em;
-  margin: 0 auto;
   width: 20%;
-  position: relative;
 }
