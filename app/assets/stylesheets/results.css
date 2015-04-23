@@ -1,4 +1,38 @@
-/*
-  Place all the styles related to the matching controller here.
-  They will automatically be included in application.css.
-*/
+.page {
+  padding: 20px 0;
+  background: #c9dbe9;
+  background: -webkit-linear-gradient(top, #c9dbe9 0%, #fff 100%);
+  background: -linear-gradient(top, #c9dbe9 0%, #fff 100%);
+  background: -moz-linear-gradient(top, #c9dbe9 0%, #fff 100%);
+}
+
+.container {
+  background-color: white;
+  width: 90%;
+  margin: 0 auto;
+  padding: 10px;
+  box-sizing: border-box;
+  ms-box-sizing: border-box;
+  webkit-box-sizing: border-box;
+  moz-box-sizing: border-box;
+}
+
+.logo-container {
+  width: 90%;
+  margin: 0 auto;
+  padding-bottom: 10px;
+}
+
+/*hapli header*/
+.logo {
+  font-family: 'Comfortaa', cursive;
+  position: relative;
+  font-size: 2.6em;
+  font-weight: 700;
+  color: #0080ff;
+}
+
+.results-logo {
+  text-decoration: none;
+  color: #0080ff;
+}

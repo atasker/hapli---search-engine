@@ -1,7 +1,19 @@
-<h3>results</h3>
+<div class="page">
 
-<p>About <%= @hits %> results (<%= @time %> seconds)</p>
+  <div class="logo-container">
+    <div class="logo"><a href="/" class="results-logo">hapli</a></div>
+  </div>
 
-<% @parsed["hits"]["hits"].each do |result| %>
-  <%= result["_id"] %><br />
-<% end %>
+  <div class="container">
+
+    <p>About <%= @hits %> results (<%= @time %> seconds)</p>
+
+    <br />
+
+    <% @parsed["hits"]["hits"].each do |result| %>
+    <a href="<%= result["_id"] %>"><%= result["_id"] %></a><br />
+    <% end %>
+
+  </div>
+
+</div>

@@ -11,10 +11,11 @@
 
   <div class="search">
 
-  <%= form_tag(controller: "results", action: "index", method: "post") do %>
-    <%= text_field_tag :q, nil, class: 'input' %>
-    <%= submit_tag("Search") %>
-  <% end %>
+    <%= form_tag(controller: "results", action: "index", method: "post") do %>
+    <%= text_field_tag :q, nil, class: 'input', :autofocus => true %>
+    <hr style="height:10px; visibility:hidden;" />
+    <%= submit_tag("Search", class: 'search-button') %>
+    <% end %>
 
   </div>
 
