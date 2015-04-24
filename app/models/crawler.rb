@@ -1,5 +1,8 @@
 class Crawler < ActiveRecord::Base
 
+  AVOID = ["?", "javascript:void", "mailto:", "news:", "|||", "&", "/cgi-bin/"]
+  BADEXT = %w(.pdf .doc .xls .ppt .mp3 .m4v .avi .mpg .rss .xml .json .txt .git .zip .md5 .asc .jpg .gif .png)
+
   include ActionView::Helpers::SanitizeHelper
 
   require 'rest_client'
@@ -72,7 +75,7 @@ class Crawler < ActiveRecord::Base
   end
 
   def crawl(url)
-    if already_visited(url)
+    if already_visited(url) || find_bad_extensions(url)
       crawl(find_next)
     else
       if url.class != Array # to ignore inadvertently passing in arrays
@@ -80,7 +83,7 @@ class Crawler < ActiveRecord::Base
         links = get_links(page)
         link_array = []
         links.each do |link|
-          unless link["href"] == nil || link["href"].empty? || link["href"].include?("?") || link["href"].include?("javascript:void") || link["href"].include?("mailto:") || link["href"].scan(/%/).size > 3 || link["href"].include?("news:") || link["href"].include?("|||")
+          unless AVOID.include?(link["href"]) || link["href"] == nil || link["href"].empty? || link["href"].scan(/%/).size > 3
             sanitized = sanitize(url, link["href"])
             @frontier << sanitized
             link_array << sanitized
@@ -96,39 +99,54 @@ class Crawler < ActiveRecord::Base
         check_size
       end
       index_page(url, page, link_array) # unless already indexed
-      crawl(find_next) # if not already in bloom
+      crawl(find_next)
     end
   end
 
+  # extract all <a> links from page
+
   def get_links(page)
-    # extract all <a> links from page
-    page.css("a")
+    unless page == [] || page.class == nil
+      page.css("a")
+    end
   end
 
+  # ignore urls that end with certain extensions
+
+  def find_bad_extensions(url)
+    BADEXT.each do |ext|
+      if url.end_with?(ext)
+        return true
+      end
+    end
+    false
+  end
+
+  # find next url in frontier that is not already in visited set
+
   def find_next
-    # find next url in frontier that is not already in bloom
     first = @frontier.take(1)
     @frontier.subtract(first)
     @frontier.take(1)[0]
   end
 
-  # need to use this
+  # determine if url has already been visited
+
   def already_visited(url)
-    # determine if url has already been visited
     canon = canonicalize(url)
     @visited.include?(canon)
   end
 
-  def visited_in(url)
-    # insert canonicalized url into visited set
-    canon = canonicalize(url)
+  # insert canonicalized url into visited set
 
+  def visited_in(url)
+    canon = canonicalize(url)
     if !canon.nil?
       @visited.add(canon)
     end
   end
 
-  def nokogiri(url) # problem passing in nil urls
+  def nokogiri(url)
     begin
       Nokogiri::HTML(RestClient.get(url){ |response, request, result, &block|
       error_codes = [404, 408, 403]
