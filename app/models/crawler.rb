@@ -1,6 +1,6 @@
 class Crawler < ActiveRecord::Base
 
-  AVOID = ["?", "javascript:void", "mailto:", "news:", "|||", "&", "/cgi-bin/"]
+  AVOID = ["?", "javascript:void", "mailto:", "news:", "|||", "&", "/cgi-bin/", "#", "%", "facebook"]
   BADEXT = %w(.pdf .doc .xls .ppt .mp3 .m4v .avi .mpg .rss .xml .json .txt .git .zip .md5 .asc .jpg .gif .png)
 
   include ActionView::Helpers::SanitizeHelper
@@ -37,17 +37,20 @@ class Crawler < ActiveRecord::Base
   end
 
   # this method interacts with elasticsearch and indexes pages
-  def index_page(url, page, links)
-      Net::HTTP.start("localhost", 9200) do |http|
-        encoded_url = CGI::escape(url).force_encoding('UTF-8')
-        request = Net::HTTP::Put.new("/hapli_search/page/#{encoded_url}")
-        request.body = {
-          "text" => strip_tags(page.text), #force encoding
-          "links" => links
-        }.to_json
 
-        request.content_type = "application/json"
-        http.request(request)
+  def index_page(url, page, links, title)
+    cleaned = clean(page)
+    Net::HTTP.start("localhost", 9200) do |http|
+      encoded_url = CGI::escape(url).force_encoding('UTF-8')
+      request = Net::HTTP::Put.new("/hapli_search/page/#{encoded_url}")
+      request.body = {
+        "text" => strip_tags(cleaned), #force encoding, removed .text
+        "title" => title,
+        "links" => links
+      }.to_json
+
+      request.content_type = "application/json"
+      http.request(request)
     end
   end
 
@@ -81,12 +84,17 @@ class Crawler < ActiveRecord::Base
       if url.class != Array # to ignore inadvertently passing in arrays
         page = nokogiri(url)
         links = get_links(page)
+        title = page.css("title").text
         link_array = []
         links.each do |link|
-          unless AVOID.include?(link["href"]) || link["href"] == nil || link["href"].empty? || link["href"].scan(/%/).size > 3
-            sanitized = sanitize(url, link["href"])
-            @frontier << sanitized
-            link_array << sanitized
+          unless link["href"].nil? || link["href"].empty? || link["href"].scan(/%/).size > 3
+            AVOID.each do |elem|
+              unless link["href"].include?(elem)
+                sanitized = sanitize(url, link["href"])
+                @frontier << sanitized
+                link_array << sanitized
+              end
+            end
             delete_empty(@frontier)
           end
         end
@@ -97,29 +105,40 @@ class Crawler < ActiveRecord::Base
         puts "-------------URLS to be crawled #{@frontier.size}-------------"
         puts "-------------URLS already crawled #{@visited.size}-------------"
         check_size
+        index_page(url, page, link_array, title) # unless already indexed
       end
-      index_page(url, page, link_array) # unless already indexed
       crawl(find_next)
     end
+  end
+
+  def clean(page)
+    page.xpath("//script").remove
+    page.xpath("//style").remove
+    actual = page.text.gsub(/\s*\n+\s*/, "\n").gsub(/[\t ]+/, " ").strip
+    actual
   end
 
   # extract all <a> links from page
 
   def get_links(page)
     unless page == [] || page.class == nil
-      page.css("a")
+      page.css("a").map { |link| link["href"] }.compact
     end
   end
 
   # ignore urls that end with certain extensions
 
   def find_bad_extensions(url)
+    if url.nil?
+      binding.pry
+    end
+    verdict = false
     BADEXT.each do |ext|
       if url.end_with?(ext)
-        return true
+        verdict = true
       end
     end
-    false
+    verdict
   end
 
   # find next url in frontier that is not already in visited set
@@ -168,24 +187,25 @@ class Crawler < ActiveRecord::Base
 
   def sanitize(root, link)
     sanitized = ""
-    if link =~ (/^\//) || !link.start_with?("www") && !link.start_with?("http")
-        sanitized << "#{root}#{link}"
-      elsif link !~ (/^#/)
-        sanitized << link
-    end
-    if sanitized.end_with?("/")
-      sanitized.chop!
-    end
-    sanitized
+      if link =~ (/^\//) || !link.start_with?("www") && !link.start_with?("http")
+          sanitized << "#{root}#{link}"
+        elsif link !~ (/^#/)
+          sanitized << link
+      end
+      sanitized
   end
 
   def canonicalize(url)
     begin
-      canon = Domainatrix.parse(url)
-      canon.canonical
+      scheme, _, host, port, _, path, _, query, _ = URI.split(url.strip)
+
+      scheme.downcase!
+      host.downcase!
+      path.squeeze!("/")
     rescue
-      nil
+      return nil
     end
+    URI::HTTP.new(scheme, nil, host, port, nil, path, nil, query, nil).to_s
   end
 
 end
